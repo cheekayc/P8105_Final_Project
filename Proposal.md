@@ -1,6 +1,6 @@
 Proposal
 ================
-Chee Kay Cheong (cc4778), Jiayi Yang (jy3186), Yishan chen (yc4016),
+Chee Kay Cheong (cc4778), Jiayi Yang (jy3186), Yishan Chen (yc4016),
 Yuxin Liu (yl4610)
 
 ### The tentative project title
