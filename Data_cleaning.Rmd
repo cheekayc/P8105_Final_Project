@@ -19,7 +19,11 @@ bakery_df =
   mutate(
     unit_price = str_replace(unit_price, "€", ""),
     unit_price = str_replace(unit_price, ",", "."),
-    unit_price = as.numeric(unit_price))
+    unit_price = as.numeric(unit_price),
+    product_name = article) %>% 
+  drop_na(product_name) %>% 
+  select(-article)
+
 bakery_df
 ```
 
@@ -45,6 +49,5 @@ anova_df =
   summarize(winter_sales = sum(rev))
 
 ```
-
 
 
