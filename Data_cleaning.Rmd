@@ -1,0 +1,24 @@
+---
+title: "Data Cleaning"
+output: github_document
+date: "2022-12-04"
+---
+
+```{r setup}
+knitr::opts_chunk$set(message = FALSE)
+
+library(tidyverse)
+```
+
+```{r}
+bakery_df =
+  read_csv("./Data/Bakery_sales.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    unit_price = str_replace(unit_price, "€", ""),
+    unit_price = str_replace(unit_price, ",", "."),
+    unit_price = as.numeric(unit_price))
+
+bakery_df
+```
+
