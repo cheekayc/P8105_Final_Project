@@ -64,3 +64,21 @@ plot_line =
 plot_line 
 ```
 
+
+A scatterplot of distributions of counts for a specific bread by months from 2021 to 2022
+```{r}
+plot_scatter =
+  bakery_df %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(year = as.numeric(year),
+         month = as.integer(month),
+         day = as.integer(day),) %>% 
+  group_by(year, month) %>% 
+  filter(product_name == "TRADITIONAL BAGUETTE") %>% 
+  summarize(count = n()) %>%
+  plot_ly(x = ~month, y = ~count, type = "scatter", color = ~year, mode = "markers", alpha = 0.5)
+  
+plot_scatter
+```
+
+
