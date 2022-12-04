@@ -4,7 +4,7 @@ output: html_document
 date: "2022-12-04"
 ---
 
-```{r setup}
+```{r setup, message = FALSE}
 knitr::opts_chunk$set(message = FALSE)
 
 library(tidyverse)
@@ -81,4 +81,13 @@ plot_scatter =
 plot_scatter
 ```
 
+ranking of the prices of products
+```{r}
+plot_bar =
+  bakery_df %>% 
+  group_by(product_name) %>% 
+  distinct (unit_price) %>% 
+  arrange(desc(unit_price))
+plot_bar
+```
 
