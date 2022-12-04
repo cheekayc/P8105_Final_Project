@@ -10,6 +10,7 @@ knitr::opts_chunk$set(message = FALSE)
 library(tidyverse)
 ```
 
+Data input and cleaning 
 ```{r}
 bakery_df =
   read_csv("./Data/Bakery_sales.csv") %>% 
