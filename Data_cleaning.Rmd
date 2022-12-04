@@ -52,7 +52,7 @@ anova_df =
 ```
 
 
-A pie chart showing the percentage of each product’s sale count
+A pie chart showing the percentage of each product’s sale count (top 10)
 ```{r}
 plot_pie =
   bakery_df %>% 
@@ -60,11 +60,32 @@ plot_pie =
   summarize(n_obs = n()) %>% 
   arrange(desc(n_obs)) %>% 
   head(10) %>% 
-  plot_ly(labels = ~product_name, values = ~n_obs, type = 'pie') %>% 
+  plot_ly(labels = ~product_name, values = ~n_obs, type = 'pie', colors = "viridis") %>% 
   layout(title = 'Top 10 favoriate bakeries',
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-  
 
 plot_pie
 ```
+
+
+A line plot of trends showing total sale revenue by month (trend)
+```{r}
+plot_line =
+  bakery_df %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(year = as.numeric(year),
+         month = as.integer(month),
+         day = as.integer(day),) %>% 
+  group_by(year, month) %>% 
+  mutate(rev = quantity * unit_price) %>% 
+  summarize(month_rev = sum(rev)) %>% 
+  
+  plot_ly(x = ~month, y = ~month_rev, mode = 'lines+markers', alpha = 0.5)
+
+plot_line 
+```
+
+
+
+

@@ -1,0 +1,66 @@
+---
+title: "Plots"
+output: html_document
+date: "2022-12-04"
+---
+
+```{r setup}
+knitr::opts_chunk$set(message = FALSE)
+
+library(tidyverse)
+library(lubridate)
+library(plotly)
+```
+
+
+Data input and cleaning 
+```{r}
+bakery_df =
+  read_csv("./Data/Bakery_sales.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    unit_price = str_replace(unit_price, "€", ""),
+    unit_price = str_replace(unit_price, ",", "."),
+    unit_price = as.numeric(unit_price),
+    product_name = article) %>% 
+  filter(product_name != ".") %>% 
+  select(-article)
+
+bakery_df
+```
+
+
+A pie chart showing the percentage of each product’s sale count (top 10)
+```{r}
+plot_pie =
+  bakery_df %>% 
+  group_by(product_name) %>% 
+  summarize(n_obs = n()) %>% 
+  arrange(desc(n_obs)) %>% 
+  head(10) %>% 
+  plot_ly(labels = ~product_name, values = ~n_obs, type = 'pie', colors = "viridis") %>% 
+  layout(title = 'Top 10 favoriate bakeries',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+plot_pie
+```
+
+
+A line plot of trends showing total sale revenue by month (trend)
+```{r}
+plot_line =
+  bakery_df %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(year = as.numeric(year),
+         month = as.integer(month),
+         day = as.integer(day),) %>% 
+  group_by(year, month) %>% 
+  mutate(rev = quantity * unit_price) %>% 
+  summarize(month_rev = sum(rev)) %>% 
+  
+  plot_ly(x = ~month, y = ~month_rev, mode = 'lines+markers', alpha = 0.5)
+
+plot_line 
+```
+
