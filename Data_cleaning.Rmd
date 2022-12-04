@@ -9,6 +9,7 @@ knitr::opts_chunk$set(message = FALSE)
 
 library(tidyverse)
 library(lubridate)
+library(plotly)
 ```
 
 Data input and cleaning 
@@ -21,7 +22,7 @@ bakery_df =
     unit_price = str_replace(unit_price, ",", "."),
     unit_price = as.numeric(unit_price),
     product_name = article) %>% 
-  drop_na(product_name) %>% 
+  filter(product_name != ".") %>% 
   select(-article)
 
 bakery_df
@@ -51,3 +52,19 @@ anova_df =
 ```
 
 
+A pie chart showing the percentage of each product’s sale count
+```{r}
+plot_pie =
+  bakery_df %>% 
+  group_by(product_name) %>% 
+  summarize(n_obs = n()) %>% 
+  arrange(desc(n_obs)) %>% 
+  head(10) %>% 
+  plot_ly(labels = ~product_name, values = ~n_obs, type = 'pie') %>% 
+  layout(title = 'Top 10 favoriate bakeries',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+  
+
+plot_pie
+```
