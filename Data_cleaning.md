@@ -9,13 +9,24 @@ library(tidyverse)
 ```
 
     ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
-    ## ✔ ggplot2 3.3.6      ✔ purrr   0.3.5 
+    ## ✔ ggplot2 3.4.0      ✔ purrr   0.3.5 
     ## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
     ## ✔ tidyr   1.2.0      ✔ stringr 1.4.1 
     ## ✔ readr   2.1.2      ✔ forcats 0.5.2 
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
+
+``` r
+library(lubridate)
+```
+
+    ## 
+    ## Attaching package: 'lubridate'
+    ## 
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     date, intersect, setdiff, union
 
 Data input and cleaning
 
@@ -44,3 +55,26 @@ bakery_df
     ##  9    18 2021-01-02 09:32         150045 TRADITIONAL BAGUETTE        3      1.2 
     ## 10    19 2021-01-02 09:32         150045 CROISSANT                   6      1.1 
     ## # … with 233,995 more rows, and abbreviated variable name ¹​unit_price
+
+One way anova test to see if the mean number of the sales are different
+for summer (Jun - Aug) and winter (Dec - Feb)
+
+``` r
+anova_df =
+  bakery_df %>% 
+  mutate(
+    month = month(date),
+    rev = quantity *unit_price 
+  ) 
+  summer_sales = 
+    anova_df %>% 
+    filter((month == 6) |(month == 7)|(month == 8)) %>% 
+  group_by(month) %>% 
+  summarize(summer_sales = sum(rev))
+  
+  winter_sales = 
+    anova_df %>% 
+    filter((month == 1) |(month == 2)|(month == 12)) %>% 
+    group_by(month) %>% 
+  summarize(winter_sales = sum(rev))
+```

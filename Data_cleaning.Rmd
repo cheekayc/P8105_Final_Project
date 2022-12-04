@@ -8,6 +8,7 @@ date: "2022-12-04"
 knitr::opts_chunk$set(message = FALSE)
 
 library(tidyverse)
+library(lubridate)
 ```
 
 Data input and cleaning 
@@ -21,4 +22,29 @@ bakery_df =
     unit_price = as.numeric(unit_price))
 bakery_df
 ```
+
+One way anova test to see if the mean number of the sales are different for summer (Jun - Aug) and winter (Dec - Feb)  
+
+```{r}
+anova_df =
+  bakery_df %>% 
+  mutate(
+    month = month(date),
+    rev = quantity *unit_price 
+  ) 
+  summer_sales = 
+    anova_df %>% 
+    filter((month == 6) |(month == 7)|(month == 8)) %>% 
+  group_by(month) %>% 
+  summarize(summer_sales = sum(rev))
+  
+  winter_sales = 
+    anova_df %>% 
+    filter((month == 1) |(month == 2)|(month == 12)) %>% 
+    group_by(month) %>% 
+  summarize(winter_sales = sum(rev))
+
+```
+
+
 
