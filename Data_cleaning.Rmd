@@ -18,6 +18,6 @@ bakery_df =
     unit_price = str_replace(unit_price, "€", ""),
     unit_price = str_replace(unit_price, ",", "."),
     unit_price = as.numeric(unit_price))
-
+bakery_df
 ```
 
