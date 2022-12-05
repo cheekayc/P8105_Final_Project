@@ -1,6 +1,6 @@
 ---
 title: "Data Cleaning"
-output: github_document
+output: html_document
 date: "2022-12-04"
 ---
 
@@ -27,30 +27,45 @@ bakery_df =
 
 bakery_df
 ```
+ANOVA tests whether there is a difference in means of the groups at each level (each individual month) of the independent variable.
 
-One way anova test to see if the mean number of the sales are different for summer (Jun - Aug) and winter (Dec - Feb)  
+One way anova test to see if the mean number of the sales of quarter 1 (Jan - Mar) has impact on sales of quarter 3 (Jun - Aug)  
+
+The null hypothesis is that there is no difference in means of sales from 1st quarter to 3rd quarter. The alternative hypothesis is that the means are different from one another.
 
 ```{r}
 anova_df =
   bakery_df %>% 
   mutate(
+    year = year(date),
     month = month(date),
     rev = quantity *unit_price 
   ) 
-  summer_sales = 
+  third_sales = 
     anova_df %>% 
-    filter((month == 6) |(month == 7)|(month == 8)) %>% 
-  group_by(month) %>% 
-  summarize(summer_sales = sum(rev))
+    filter((month == 6)|(month == 7)|(month == 8)) %>% 
+  group_by(year, month) %>% 
+  summarize(third_sales = n()) %>% 
+    group_by(year, month) %>% 
+  dplyr::mutate(ID = cur_group_id())
   
-  winter_sales = 
+  first_sales = 
     anova_df %>% 
-    filter((month == 1) |(month == 2)|(month == 12)) %>% 
-    group_by(month) %>% 
-  summarize(winter_sales = sum(rev))
+    filter((month == 1) |(month == 2)|(month == 3)) %>% 
+    group_by(year, month) %>% 
+  summarize(first_sales = n()) %>% 
+    group_by(year, month) %>% 
+  dplyr::mutate(ID = cur_group_id())
+  
+anova_test_df = 
+  left_join(third_sales, first_sales, by = c("ID"))
+anova_test_df
 
+one.way <- aov(first_sales ~ third_sales, data = anova_test_df)
+
+summary(one.way)
 ```
-
+The ANOVA test p-value is 0.00451 which is less than alpha level of 0.05, so we reject the null hypothesis and conclude that the means of sales in quarter 1 is statistically significant from the means of sales in quarter 3.
 
 A pie chart showing the percentage of each product’s sale count (top 10)
 ```{r}
