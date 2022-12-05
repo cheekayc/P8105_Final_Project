@@ -81,13 +81,25 @@ plot_scatter =
 plot_scatter
 ```
 
-ranking of the prices of products
+ranking of the prices of DIVERS PATISSERIE
 ```{r}
 plot_bar =
   bakery_df %>% 
+  filter(product_name %in% c("DIVERS PATISSERIE")) %>% 
   group_by(product_name) %>% 
   distinct (unit_price) %>% 
-  arrange(desc(unit_price))
+  arrange(desc(unit_price)) %>% 
+  mutate(product_name = fct_reorder(product_name, unit_price)) %>% 
+  ggplot(aes(x = unit_price, color = product_name)) + 
+    geom_histogram(position = "dodge", binwidth = 2) + 
+    theme(axis.text.x = element_text(hjust = 1)) + 
+    labs(x = "unit price",
+         title = "ranking of the prices of DIVERS PATISSERIE") +
+    theme(legend.position = "bottom") 
+
 plot_bar
 ```
+
+
+
 
