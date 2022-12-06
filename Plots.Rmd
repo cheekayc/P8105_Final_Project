@@ -13,7 +13,6 @@ library(plotly)
 library(patchwork)
 ```
 
-
 Data input and cleaning 
 ```{r, message=FALSE}
 bakery_df =
@@ -30,6 +29,7 @@ bakery_df =
 bakery_df
 ```
 
+### Pie Charts
 
 A pie chart showing the percentage of each product’s sale count (top 10)
 ```{r}
@@ -84,7 +84,9 @@ plot_pie_2021
 plot_pie_2022
 ```
 
-top 10 favorite bread monthly sale counts in 2021
+### Line Plots
+
+Top 10 favorite bread monthly sale counts in 2021
 ```{r}
 top_line =
   bakery_df %>% 
@@ -127,7 +129,7 @@ top_line2_2021 =
 top_line1_2021+top_line2_2021
 ```
 
-top 10 favorite bread monthly sale counts in 2022
+Top 10 favorite bread monthly sale counts in 2022
 ```{r}
 top_line =
   bakery_df %>% 
@@ -187,7 +189,9 @@ plot_line =
 plot_line 
 ```
 
-ranking of mean prices of different products
+### Scatterplot
+
+Ranking of mean prices of different products
 ```{r}
 test =
   bakery_df %>% 
@@ -206,7 +210,9 @@ test =
 test 
 ```
 
-ranking of total revenue of top 10 products in 2021/2022
+### Bar graphs
+
+Ranking of total revenue of top 10 products in 2021/2022
 ```{r}
 total_rev_bar=
   bakery_df %>% 
@@ -240,7 +246,7 @@ total_rev_bar_2022=
 total_rev_bar_2021+total_rev_bar_2022
 ```
 
-distribution of monthly revenue in 2021/2022
+Distribution of monthly revenue in 2021/2022
 ```{r}
 dis_rev_bar=
   bakery_df %>% 
