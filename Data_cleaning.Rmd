@@ -12,6 +12,8 @@ library(lubridate)
 library(plotly)
 ```
 
+## Load and clean data
+
 Data input and cleaning 
 ```{r}
 bakery_df =
@@ -27,9 +29,14 @@ bakery_df =
 
 bakery_df
 ```
+
+## Analysis
+
+### ANOVA 
+
 ANOVA tests whether there is a difference in means of the groups at each level (each individual month) of the independent variable.
 
-One way anova test to see if the mean number of the sales of quarter 1 (Jan - Mar) has impact on sales of quarter 3 (Jun - Aug)  
+One way anova test to test if the mean number of the sales of quarter 1 (Jan - Mar) has impact on sales of quarter 3 (Jun - Aug)  
 
 The null hypothesis is that there is no difference in means of sales from 1st quarter to 3rd quarter. The alternative hypothesis is that the means are different from one another.
 
@@ -68,6 +75,8 @@ summary(one.way)
 The ANOVA test p-value is 0.00451 which is less than alpha level of 0.05, so we reject the null hypothesis and conclude that the means of sales in quarter 1 is statistically significant from the means of sales in quarter 3.
 
 
+### Linear Regression
+
 Linear Regression for baguette 
 ```{r}
 baguette_df = 
@@ -93,8 +102,16 @@ croissant_reg = lm(quantity ~ unit_price + month, croissant_df)
 
 croissant_reg %>% 
   broom::tidy()
-
 ```
+
+
+### One-sample T-test
+
+
+
+## Visualization
+
+### Pie Chart
 
 A pie chart showing the percentage of each product’s sale count (top 10)
 ```{r}
@@ -112,6 +129,7 @@ plot_pie =
 plot_pie
 ```
 
+### Line plot
 
 A line plot of trends showing total sale revenue by month (trend)
 ```{r}
