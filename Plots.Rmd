@@ -10,6 +10,7 @@ knitr::opts_chunk$set(message = FALSE)
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(patchwork)
 ```
 
 
@@ -46,6 +47,48 @@ plot_pie =
 plot_pie
 ```
 
+top 10 favorite bread monthly sale counts in 2021
+```{r}
+top_line =
+  bakery_df %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(year = as.numeric(year),
+         month = as.integer(month),
+         day = as.integer(day),) %>%
+  filter(year == 2021) %>% 
+  select (year, month, product_name, quantity) %>% 
+  group_by (year, month, product_name) %>% 
+  mutate (total_counts = sum (quantity)) %>% 
+  distinct(year, month, product_name,total_counts) 
+
+top_line1 =
+  top_line %>% 
+  filter(product_name %in% c("TRADITIONAL BAGUETTE")) %>% 
+  ggplot(aes(x =month, y = total_counts, color = product_name)) + 
+    geom_line() +
+    theme(legend.position = "bottom") + 
+    labs(x = "month",
+         y = "counts of bread",
+         title = "monthly sale counts of the most popular bread in 2021") +
+    scale_x_continuous(
+    breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+    labels = c("Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) 
+
+top_line2 =
+  top_line %>% 
+  filter(product_name %in% c("COUPE", "BAGUETTE","BANETTE", "CROISSANT", "PAIN", "AU CHOCOLAT", "SPECIAL BREAD", "CEREAL BAGUETTE", "FORMULE SANDWICH", "BOULE 400G")) %>% 
+  ggplot(aes(x =month, y = total_counts, color = product_name)) + 
+    geom_line() +
+    theme(legend.position = "bottom") + 
+    labs(x = "month",
+         y = "counts of bread",
+         title = "top 2-10 popular bread monthly sale counts in 2021") +
+    scale_x_continuous(
+    breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+    labels = c("Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) 
+ 
+top_line1+top_line2
+```
 
 A line plot of trends showing total sale revenue by month (trend)
 ```{r}
@@ -99,7 +142,4 @@ plot_bar =
 
 plot_bar
 ```
-
-
-
 
