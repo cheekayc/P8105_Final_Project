@@ -84,7 +84,6 @@ plot_pie_2021
 plot_pie_2022
 ```
 
-
 top 10 favorite bread monthly sale counts in 2021
 ```{r}
 top_line =
@@ -99,7 +98,7 @@ top_line =
   mutate (total_counts = sum (quantity)) %>% 
   distinct(year, month, product_name,total_counts) 
 
-top_line1 =
+top_line1_2021 =
   top_line %>% 
   filter(product_name %in% c("TRADITIONAL BAGUETTE")) %>% 
   ggplot(aes(x =month, y = total_counts, color = product_name)) + 
@@ -112,9 +111,9 @@ top_line1 =
     breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
     labels = c("Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) 
 
-top_line2 =
+top_line2_2021 =
   top_line %>% 
-  filter(product_name %in% c("COUPE", "BAGUETTE","BANETTE", "CROISSANT", "PAIN", "AU CHOCOLAT", "SPECIAL BREAD", "CEREAL BAGUETTE", "FORMULE SANDWICH", "BOULE 400G")) %>% 
+    filter(product_name %in% c("COUPE", "BAGUETTE","BANETTE", "CROISSANT", "PAIN AU CHOCOLAT", "CEREAL BAGUETTE", "SPECIAL BREAD", "CAMPAGNE", "BOULE 400G")) %>% 
   ggplot(aes(x =month, y = total_counts, color = product_name)) + 
     geom_line() +
     theme(legend.position = "bottom") + 
@@ -125,7 +124,50 @@ top_line2 =
     breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
     labels = c("Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) 
  
-top_line1+top_line2
+top_line1_2021+top_line2_2021
+```
+
+top 10 favorite bread monthly sale counts in 2022
+```{r}
+top_line =
+  bakery_df %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(year = as.numeric(year),
+         month = as.integer(month),
+         day = as.integer(day),) %>%
+  filter(year == 2022) %>% 
+  select (year, month, product_name, quantity) %>% 
+  group_by (year, month, product_name) %>% 
+  mutate (total_counts = sum (quantity)) %>% 
+  distinct(year, month, product_name,total_counts) 
+
+top_line1_2022 =
+  top_line %>% 
+  filter(product_name %in% c("TRADITIONAL BAGUETTE")) %>% 
+  ggplot(aes(x =month, y = total_counts, color = product_name)) + 
+    geom_line() +
+    theme(legend.position = "bottom") + 
+    labs(x = "month",
+         y = "counts of bread",
+         title = "monthly sale counts of the most popular bread in 2022") +
+    scale_x_continuous(
+    breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+    labels = c("Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) 
+
+top_line2_2022 =
+  top_line %>% 
+    filter(product_name %in% c("COUPE", "BAGUETTE","BANETTE", "CROISSANT", "PAIN AU CHOCOLAT", "SPECIAL BREAD", "FORMULE SANDWICH","CEREAL BAGUETTE", "BOULE 400G")) %>% 
+  ggplot(aes(x =month, y = total_counts, color = product_name)) + 
+    geom_line() +
+    theme(legend.position = "bottom") + 
+    labs(x = "month",
+         y = "counts of bread",
+         title = "top 2-10 popular bread monthly sale counts in 2022") +
+    scale_x_continuous(
+    breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+    labels = c("Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) 
+ 
+top_line1_2022+top_line2_2022
 ```
 
 A line plot of trends showing total sale revenue by month (trend)
