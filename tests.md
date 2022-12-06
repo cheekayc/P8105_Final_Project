@@ -167,6 +167,8 @@ baguette_reg %>%
     ## 2 unit_price    0.460    0.0223      20.7  9.79e- 95
     ## 3 month         0.0107   0.00140      7.66 1.92e- 14
 
+Linear Regression for croissant
+
 ``` r
 croissant_df = 
   bakery_df %>% 

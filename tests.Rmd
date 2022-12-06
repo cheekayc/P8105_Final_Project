@@ -82,7 +82,7 @@ baguette_reg %>%
   broom::tidy()
 ```
 
-
+Linear Regression for croissant
 ```{r}
 croissant_df = 
   bakery_df %>% 
