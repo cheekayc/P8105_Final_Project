@@ -1,4 +1,4 @@
-tests
+Tests & Analyses
 ================
 2022-12-05
 
@@ -11,8 +11,8 @@ library(tidyverse)
     ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
     ## ✔ ggplot2 3.4.0      ✔ purrr   0.3.5 
     ## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
-    ## ✔ tidyr   1.2.0      ✔ stringr 1.4.1 
-    ## ✔ readr   2.1.2      ✔ forcats 0.5.2 
+    ## ✔ tidyr   1.2.1      ✔ stringr 1.4.1 
+    ## ✔ readr   2.1.3      ✔ forcats 0.5.2 
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
@@ -21,6 +21,7 @@ library(tidyverse)
 library(lubridate)
 ```
 
+    ## Loading required package: timechange
     ## 
     ## Attaching package: 'lubridate'
     ## 
@@ -79,15 +80,18 @@ bakery_df
     ## 10    19 2021-01-02 09:32         150045        6       1.1  CROISSANT          
     ## # … with 233,990 more rows
 
+### ANOVA
+
 ANOVA tests whether there is a difference in means of the groups at each
 level (each individual month) of the independent variable.
 
-One way anova test to see if the mean number of the sales of quarter 1
-(Jan - Mar) has impact on sales of quarter 3 (Jun - Aug)
+One way anova test can test if the mean sales of quarter 1 (Jan - Mar)
+is different from the mean sales of quarter 3 (Jun - Aug).
 
-The null hypothesis is that there is no difference in means of sales
-from 1st quarter to 3rd quarter. The alternative hypothesis is that the
-means are different from one another.
+The null hypothesis is that there is no difference in the mean sales of
+1st quarter and 3rd quarter.  
+The alternative hypothesis is that the means are different from one
+another.
 
 ``` r
 anova_df =
@@ -95,26 +99,27 @@ anova_df =
   mutate(
     year = year(date),
     month = month(date),
-    rev = quantity *unit_price 
-  ) 
-  third_sales = 
-    anova_df %>% 
-    filter((month == 6)|(month == 7)|(month == 8)) %>% 
+    rev = quantity * unit_price) 
+
+third_sales = 
+  anova_df %>% 
+  filter((month == 6)|(month == 7)|(month == 8)) %>% 
   group_by(year, month) %>% 
   summarize(third_sales = n()) %>% 
-    group_by(year, month) %>% 
-  dplyr::mutate(ID = cur_group_id())
+  group_by(year, month) %>% 
+  mutate(ID = cur_group_id())
   
-  first_sales = 
-    anova_df %>% 
-    filter((month == 1) |(month == 2)|(month == 3)) %>% 
-    group_by(year, month) %>% 
+first_sales = 
+  anova_df %>% 
+  filter((month == 1) |(month == 2)|(month == 3)) %>% 
+  group_by(year, month) %>% 
   summarize(first_sales = n()) %>% 
-    group_by(year, month) %>% 
-  dplyr::mutate(ID = cur_group_id())
+  group_by(year, month) %>% 
+  mutate(ID = cur_group_id())
   
 anova_test_df = 
   left_join(third_sales, first_sales, by = c("ID"))
+
 anova_test_df
 ```
 
@@ -141,9 +146,16 @@ summary(one.way)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 The ANOVA test p-value is 0.00451 which is less than alpha level of
-0.05, so we reject the null hypothesis and conclude that the means of
-sales in quarter 1 is statistically significant from the means of sales
-in quarter 3.
+0.05, so we reject the null hypothesis and conclude that the mean sales
+in quarter 1 is statistically significantly different from the mean
+sales of quarter 3.
+
+### Linear Regression
+
+We are interested in testing the relationship between the unit price of
+a product and its quantity being sold. Considering that the sales of
+bakery varies by month, so we included `month` in our model as a
+confounder to be controlled.
 
 Linear Regression for baguette
 
@@ -152,8 +164,8 @@ baguette_df =
   bakery_df %>% 
   filter(str_detect(product_name, "BAGUETTE")) %>% 
   mutate(
-    month = month(date)
-  )
+    month = month(date))
+
 baguette_reg = lm(quantity ~ unit_price + month, baguette_df)
 
 baguette_reg %>% 
@@ -174,8 +186,8 @@ croissant_df =
   bakery_df %>% 
   filter(str_detect(product_name, "CROISSANT")) %>% 
   mutate(
-    month = month(date)
-  )
+    month = month(date))
+
 croissant_reg = lm(quantity ~ unit_price + month, croissant_df)
 
 croissant_reg %>% 
@@ -188,3 +200,78 @@ croissant_reg %>%
     ## 1 (Intercept)   6.08     0.155       39.2  1.34e-317
     ## 2 unit_price   -3.25     0.129      -25.3  8.39e-138
     ## 3 month         0.0240   0.00577      4.17 3.10e-  5
+
+### One-sample T-test
+
+##### Regular Baguette (Two-sided)
+
+We are interested in testing if the mean price of **regular baguette**
+in this bakery is significantly different from the average price for a
+baguette in Paris, which is 1.07 euros.
+
+Null hypothesis: The mean price of baguette in this bakery is the same
+as the average price of baguette in Paris.
+
+Alternative hypothesis: The mean price of baguette in this bakery is
+different from the average price of baguette in Paris.
+
+``` r
+baguette_onet = 
+  bakery_df %>% 
+  filter(product_name == "BAGUETTE") %>%
+  select(unit_price)
+
+baguette_t_results = 
+  t.test(baguette_onet, mu = 1.07 , alternative = "two.sided") %>% 
+  broom::tidy()
+```
+
+The p-value is much smaller than the alpha (0.05), so we would reject
+the null hypothesis. At 5% level of significance, we have sufficient
+evidence to conclude that the mean price of baguette in this bakery is
+significantly different from the average price of baguette in Paris.
+
+##### Traditional Baguette (One-sided)
+
+We noticed that the price of traditional baguette in this bakery is
+higher than the average price of traditional baguette in France. The
+price of the traditional French loaf is around 0.90 Euros in bakeries.
+Therefore, we would like to conduct a one-sided T-test to see if the
+price difference is significant.
+
+Null hypothesis: The mean price of traditional baguette in this bakery
+is the same as the average price of traditional baguette in France.
+
+Alternative hypothesis: The mean price of traditional baguette in this
+bakery is higher than the average price of traditional baguette in
+France.
+
+``` r
+bakery_df %>% 
+  filter(product_name == "TRADITIONAL BAGUETTE") %>% 
+  count(unit_price)
+```
+
+    ## # A tibble: 3 × 2
+    ##   unit_price     n
+    ##        <dbl> <int>
+    ## 1       1.2  39426
+    ## 2       1.25 13059
+    ## 3       1.3  15204
+
+``` r
+trad_baguette_onet = 
+  bakery_df %>% 
+  filter(product_name == "TRADITIONAL BAGUETTE") %>%
+  select(unit_price)
+
+trad_baguette_t_results = 
+  t.test(trad_baguette_onet, mu = 0.90, alternative = "greater") %>% 
+  broom::tidy()
+```
+
+The p-value is much smaller than the alpha (0.05), so we would reject
+the null hypothesis. At 5% level of significance, we have sufficient
+evidence to conclude that the mean price of traditional baguette in this
+bakery is significantly higher than the average price of baguette in
+Paris.
