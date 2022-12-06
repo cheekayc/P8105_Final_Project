@@ -47,6 +47,28 @@ plot_pie =
 plot_pie
 ```
 
+A pie chart showing the percentage of each product’s sale count (top 10) in 2021
+```{r}
+plot_pie =
+  bakery_df %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(year = as.numeric(year),
+         month = as.integer(month),
+         day = as.integer(day),) %>%
+  filter(year == 2021) %>%
+  group_by(product_name) %>% 
+  summarize(n_obs = n()) %>% 
+  arrange(desc(n_obs)) %>% 
+  head(10) %>% 
+  plot_ly(labels = ~product_name, values = ~n_obs, type = 'pie', colors = "viridis") %>% 
+  layout(title = 'Top 10 favoriate bakeries in 2021',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+plot_pie
+```
+
+
 top 10 favorite bread monthly sale counts in 2021
 ```{r}
 top_line =
@@ -107,42 +129,6 @@ plot_line =
 plot_line 
 ```
 
-
-A scatterplot of distributions of counts for a specific bread by months from 2021 to 2022
-```{r}
-plot_scatter =
-  bakery_df %>% 
-  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
-  mutate(year = as.numeric(year),
-         month = as.integer(month),
-         day = as.integer(day),) %>% 
-  group_by(year, month) %>% 
-  filter(product_name == "TRADITIONAL BAGUETTE") %>% 
-  summarize(count = n()) %>%
-  plot_ly(x = ~month, y = ~count, type = "scatter", color = ~year, mode = "markers", alpha = 0.5)
-  
-plot_scatter
-```
-
-ranking of the prices of DIVERS PATISSERIE
-```{r}
-plot_bar =
-  bakery_df %>% 
-  filter(product_name %in% c("DIVERS PATISSERIE")) %>% 
-  group_by(product_name) %>% 
-  distinct (unit_price) %>% 
-  arrange(desc(unit_price)) %>% 
-  mutate(product_name = fct_reorder(product_name, unit_price)) %>% 
-  ggplot(aes(x = unit_price, color = product_name)) + 
-    geom_histogram(position = "dodge", binwidth = 2) + 
-    theme(axis.text.x = element_text(hjust = 1)) + 
-    labs(x = "unit price",
-         title = "ranking of the prices of DIVERS PATISSERIE") +
-    theme(legend.position = "bottom") 
-
-plot_bar
-```
-
 ranking of mean prices of different products
 ```{r}
 test =
@@ -162,6 +148,24 @@ test =
 test 
 ```
 
+```{r}
+plot_line =
+  bakery_df %>% 
+  group_by(product_name) %>% 
+  mutate(rev = quantity * unit_price) %>% 
+  summarize(prod_rev = sum(rev)) %>% 
+  arrange(desc(prod_rev)) %>% 
+  filter(product_name %in% c("TRADITIONAL BAGUETTE", "COUPE", "BAGUETTE","BANETTE", "CROISSANT", "PAIN", "AU CHOCOLAT", "SPECIAL BREAD", "CEREAL BAGUETTE", "FORMULE SANDWICH", "BOULE 400G")) %>% 
+  mutate(product_name = fct_reorder(product_name, prod_rev)) %>% 
+  ggplot(aes(x =product_name, y= prod_rev, fill=product_name)) + 
+    geom_bar(stat="identity", width=0.5) +
+    labs(x = "name of products",
+         y = "total revenue",
+         title = "ranking of total revenue of top 10 products") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none")
+  
+  plot_line
+```
 
 
 
