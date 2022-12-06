@@ -15,7 +15,7 @@ library(patchwork)
 
 
 Data input and cleaning 
-```{r}
+```{r, message=FALSE}
 bakery_df =
   read_csv("./Data/Bakery_sales.csv") %>% 
   janitor::clean_names() %>% 
@@ -223,7 +223,7 @@ total_rev_bar_2021=
     geom_bar(stat="identity", width=0.5) +
     labs(x = "name of products",
          y = "total revenue",
-         title = "ranking of total revenue of top 10 products in 2021") +
+         title = "ranking in 2021") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none")
   
 total_rev_bar_2022=
@@ -234,7 +234,7 @@ total_rev_bar_2022=
     geom_bar(stat="identity", width=0.5) +
     labs(x = "name of products",
          y = "total revenue",
-         title = "ranking of total revenue of top 10 products in 2022") +
+         title = "ranking in 2022") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none")
  
 total_rev_bar_2021+total_rev_bar_2022
