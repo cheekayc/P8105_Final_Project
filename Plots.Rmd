@@ -143,3 +143,26 @@ plot_bar =
 plot_bar
 ```
 
+ranking of mean prices of different products
+```{r}
+test =
+  bakery_df %>% 
+  group_by(product_name) %>% 
+  summarize(mean_price = mean(unit_price)) %>% 
+  arrange(desc(mean_price)) %>% 
+  mutate(product_name = fct_reorder(product_name, mean_price)) %>% 
+  ggplot(aes(x =product_name, y = mean_price, color = product_name)) + 
+    geom_point() +
+    theme(axis.text.x = element_text(angle=90,hjust = 1)) + 
+    labs(x = "name of products",
+         y = "mean prices",
+         title = "ranking of mean prices of different products") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), legend.position = "none")
+  
+test 
+```
+
+
+
+
+
