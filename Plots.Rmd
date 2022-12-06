@@ -240,6 +240,55 @@ total_rev_bar_2022=
 total_rev_bar_2021+total_rev_bar_2022
 ```
 
+distribution of monthly revenue in 2021/2022
+```{r}
+dis_rev_bar=
+  bakery_df %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(year = as.numeric(year),
+         month = as.integer(month),
+         day = as.integer(day),) 
+
+dis_rev_bar_2021=
+  dis_rev_bar %>%
+    filter(year == 2021,
+         product_name %in% c("TRADITIONAL BAGUETTE", "COUPE", "BAGUETTE","BANETTE", "CROISSANT", "PAIN AU CHOCOLAT", "CEREAL BAGUETTE", "SPECIAL BREAD", "CAMPAGNE", "BOULE 400G")) %>% 
+  group_by(year, month, product_name) %>% 
+  mutate(rev = quantity * unit_price) %>% 
+  summarize(prod_dis_rev = sum(rev)) %>% 
+  arrange(desc(prod_dis_rev)) %>% 
+   mutate(product_name = fct_reorder(product_name, prod_dis_rev)) %>% 
+    ggplot(aes(x =month, y= prod_dis_rev, fill=product_name)) + 
+    geom_bar(stat="identity", position="stack") +
+    labs(x = "month",
+         y = "total revenue",
+         title = "distribution of monthly revenue in 2021") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "bottom") +
+  scale_x_continuous(
+    breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+    labels = c("Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) 
+
+dis_rev_bar_2022=
+  dis_rev_bar %>%
+    filter(year == 2022,
+         product_name %in% c("TRADITIONAL BAGUETTE", "COUPE", "BAGUETTE","BANETTE", "CROISSANT", "PAIN AU CHOCOLAT", "SPECIAL BREAD", "FORMULE SANDWICH","CEREAL BAGUETTE", "BOULE 400G")) %>% 
+  group_by(year, month, product_name) %>% 
+  mutate(rev = quantity * unit_price) %>% 
+  summarize(prod_dis_rev = sum(rev)) %>% 
+  arrange(desc(prod_dis_rev)) %>% 
+   mutate(product_name = fct_reorder(product_name, prod_dis_rev)) %>% 
+    ggplot(aes(x =month, y= prod_dis_rev, fill=product_name)) + 
+    geom_bar(stat="identity", position="stack") +
+    labs(x = "month",
+         y = "total revenue",
+         title = "distribution of monthly revenue in 2022") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "bottom") +
+  scale_x_continuous(
+    breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+    labels = c("Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) 
+
+dis_rev_bar_2021+dis_rev_bar_2022
+```
 
 
 
