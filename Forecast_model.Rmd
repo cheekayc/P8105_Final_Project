@@ -32,5 +32,31 @@ bakery_df =
   select(-article)
 ```
 
+In 2021, how many products were sold each month?
+```{r}
+sale_2021 = 
+  bakery_df %>% 
+  filter(year == 2021) %>% 
+  select(date, year, month, hour, product_name, quantity, unit_price) %>% 
+  group_by(date) %>% 
+  summarize(
+    total_sale = sum(quantity))
+```
+
+In 2021, the bakery opened for business for 339 days. The `sale_2021` dataset shows the number of products sold each day in 2021. 
+To begin our forecasting task, we need to convert the dataframe into a *time series* or *ts* object. 
+
+```{r}
+ts_df = 
+  ts(sale_2021$total_sale, start = c(2021), frequency = 339)
+
+print(ts_df)
+```
+
+Plot data on a line graph
+```{r}
+plot.ts(ts_df, col = "red", main = "Monthly Sale (2021)", xlab = "Month", ylab = "Number of prroducts sold")
+```
+
 
 
