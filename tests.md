@@ -1,5 +1,6 @@
-Tests & Analyses
+Tests & Analysis
 ================
+Jiayi Yang, Chee-Kay Cheong
 2022-12-05
 
 ``` r
@@ -11,8 +12,8 @@ library(tidyverse)
     ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
     ## ✔ ggplot2 3.4.0      ✔ purrr   0.3.5 
     ## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
-    ## ✔ tidyr   1.2.1      ✔ stringr 1.4.1 
-    ## ✔ readr   2.1.3      ✔ forcats 0.5.2 
+    ## ✔ tidyr   1.2.0      ✔ stringr 1.4.1 
+    ## ✔ readr   2.1.2      ✔ forcats 0.5.2 
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
@@ -21,7 +22,6 @@ library(tidyverse)
 library(lubridate)
 ```
 
-    ## Loading required package: timechange
     ## 
     ## Attaching package: 'lubridate'
     ## 
@@ -60,7 +60,12 @@ library(mgcv)
     ## 
     ##     collapse
     ## 
-    ## This is mgcv 1.8-41. For overview type 'help("mgcv-package")'.
+    ## This is mgcv 1.8-40. For overview type 'help("mgcv-package")'.
+
+``` r
+library(moments)
+library(modelr)
+```
 
 Data input and cleaning
 
@@ -72,26 +77,28 @@ bakery_df =
     unit_price = str_replace(unit_price, "€", ""),
     unit_price = str_replace(unit_price, ",", "."),
     unit_price = as.numeric(unit_price),
-    product_name = article) %>% 
+    product_name = article, 
+    rev = quantity * unit_price
+    ) %>% 
   filter(product_name != ".") %>% 
   select(-article)
 
 bakery_df
 ```
 
-    ## # A tibble: 234,000 × 7
-    ##       x1 date       time   ticket_number quantity unit_price product_name       
-    ##    <dbl> <date>     <time>         <dbl>    <dbl>      <dbl> <chr>              
-    ##  1     0 2021-01-02 08:38         150040        1       0.9  BAGUETTE           
-    ##  2     1 2021-01-02 08:38         150040        3       1.2  PAIN AU CHOCOLAT   
-    ##  3     4 2021-01-02 09:14         150041        2       1.2  PAIN AU CHOCOLAT   
-    ##  4     5 2021-01-02 09:14         150041        1       1.15 PAIN               
-    ##  5     8 2021-01-02 09:25         150042        5       1.2  TRADITIONAL BAGUET…
-    ##  6    11 2021-01-02 09:25         150043        2       0.9  BAGUETTE           
-    ##  7    12 2021-01-02 09:25         150043        3       1.1  CROISSANT          
-    ##  8    15 2021-01-02 09:27         150044        1       1.05 BANETTE            
-    ##  9    18 2021-01-02 09:32         150045        3       1.2  TRADITIONAL BAGUET…
-    ## 10    19 2021-01-02 09:32         150045        6       1.1  CROISSANT          
+    ## # A tibble: 234,000 × 8
+    ##       x1 date       time   ticket_number quantity unit_price product_name    rev
+    ##    <dbl> <date>     <time>         <dbl>    <dbl>      <dbl> <chr>         <dbl>
+    ##  1     0 2021-01-02 08:38         150040        1       0.9  BAGUETTE       0.9 
+    ##  2     1 2021-01-02 08:38         150040        3       1.2  PAIN AU CHOC…  3.6 
+    ##  3     4 2021-01-02 09:14         150041        2       1.2  PAIN AU CHOC…  2.4 
+    ##  4     5 2021-01-02 09:14         150041        1       1.15 PAIN           1.15
+    ##  5     8 2021-01-02 09:25         150042        5       1.2  TRADITIONAL …  6   
+    ##  6    11 2021-01-02 09:25         150043        2       0.9  BAGUETTE       1.8 
+    ##  7    12 2021-01-02 09:25         150043        3       1.1  CROISSANT      3.3 
+    ##  8    15 2021-01-02 09:27         150044        1       1.05 BANETTE        1.05
+    ##  9    18 2021-01-02 09:32         150045        3       1.2  TRADITIONAL …  3.6 
+    ## 10    19 2021-01-02 09:32         150045        6       1.1  CROISSANT      6.6 
     ## # … with 233,990 more rows
 
 ### ANOVA
@@ -112,8 +119,10 @@ anova_df =
   bakery_df %>% 
   mutate(
     year = year(date),
-    month = month(date),
-    rev = quantity * unit_price) 
+    month = month(date)
+    ) %>% 
+  filter(year == 2021)
+  
 
 third_sales = 
   anova_df %>% 
@@ -125,7 +134,7 @@ third_sales =
   
 first_sales = 
   anova_df %>% 
-  filter((month == 1) |(month == 2)|(month == 3)) %>% 
+  filter((month == 12) |(month == 1)|(month == 2)) %>% 
   group_by(year, month) %>% 
   summarize(first_sales = n()) %>% 
   group_by(year, month) %>% 
@@ -137,15 +146,12 @@ anova_test_df =
 anova_test_df
 ```
 
-    ## # A tibble: 6 × 7
+    ## # A tibble: 3 × 7
     ##   year.x month.x third_sales    ID year.y month.y first_sales
     ##    <dbl>   <dbl>       <int> <int>  <dbl>   <dbl>       <int>
     ## 1   2021       6       10856     1   2021       1        6562
     ## 2   2021       7       17592     2   2021       2        7817
-    ## 3   2021       8       20344     3   2021       3        9233
-    ## 4   2022       6       10678     4   2022       1        6273
-    ## 5   2022       7       18242     5   2022       2        7795
-    ## 6   2022       8       20135     6   2022       3        8251
+    ## 3   2021       8       20344     3   2021      12        7891
 
 ``` r
 one.way <- aov(first_sales ~ third_sales, data = anova_test_df)
@@ -153,67 +159,184 @@ one.way <- aov(first_sales ~ third_sales, data = anova_test_df)
 summary(one.way)
 ```
 
-    ##             Df  Sum Sq Mean Sq F value  Pr(>F)   
-    ## third_sales  1 5350152 5350152   33.15 0.00451 **
-    ## Residuals    4  645565  161391                   
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ##             Df  Sum Sq Mean Sq F value Pr(>F)
+    ## third_sales  1 1054492 1054492   17.26   0.15
+    ## Residuals    1   61088   61088
 
 The ANOVA test p-value is 0.00451 which is less than alpha level of
 0.05, so we reject the null hypothesis and conclude that the mean sales
 in quarter 1 is statistically significantly different from the mean
 sales of quarter 3.
 
-### Linear Regression
-
-We are interested in testing the relationship between the unit price of
-a product and its quantity being sold. Considering that the sales of
-bakery varies by month, so we included `month` in our model as a
-confounder to be controlled.
-
-Linear Regression for baguette
-
-``` r
-baguette_df = 
-  bakery_df %>% 
-  filter(str_detect(product_name, "BAGUETTE")) %>% 
-  mutate(
-    month = month(date))
-
-baguette_reg = lm(quantity ~ unit_price + month, baguette_df)
-
-baguette_reg %>% 
-  broom::tidy()
-```
-
-    ## # A tibble: 3 × 5
-    ##   term        estimate std.error statistic   p.value
-    ##   <chr>          <dbl>     <dbl>     <dbl>     <dbl>
-    ## 1 (Intercept)   1.04     0.0276      37.8  4.79e-311
-    ## 2 unit_price    0.460    0.0223      20.7  9.79e- 95
-    ## 3 month         0.0107   0.00140      7.66 1.92e- 14
-
-Linear Regression for croissant
+### Simple Linear Regression for croissant and test the model using Cross Validation
 
 ``` r
 croissant_df = 
   bakery_df %>% 
   filter(str_detect(product_name, "CROISSANT")) %>% 
   mutate(
-    month = month(date))
+    month = month(date),
+    qty_cp = (quantity > 5) * (quantity - 5)
+    )
 
-croissant_reg = lm(quantity ~ unit_price + month, croissant_df)
+ggplot(croissant_df, aes(x = quantity, y = rev)) +
+  geom_point()
+```
+
+![](tests_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+``` r
+croissant_reg = lm(rev ~ quantity, croissant_df)
 
 croissant_reg %>% 
   broom::tidy()
 ```
 
-    ## # A tibble: 3 × 5
+    ## # A tibble: 2 × 5
     ##   term        estimate std.error statistic   p.value
     ##   <chr>          <dbl>     <dbl>     <dbl>     <dbl>
-    ## 1 (Intercept)   6.08     0.155       39.2  1.34e-317
-    ## 2 unit_price   -3.25     0.129      -25.3  8.39e-138
-    ## 3 month         0.0240   0.00577      4.17 3.10e-  5
+    ## 1 (Intercept)   0.0863   0.00304      28.4 8.75e-172
+    ## 2 quantity      1.12     0.00100    1121.  0
+
+Examine cross validation of this simple linear regression model
+
+``` r
+linear_mod = lm(rev ~ quantity, croissant_df)
+pwl_mod    = lm(rev ~ quantity + qty_cp, data = croissant_df)
+smooth_mod = gam(rev ~ s(quantity), data = croissant_df)
+```
+
+``` r
+croissant_df %>% 
+  gather_predictions(linear_mod, pwl_mod, smooth_mod) %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = quantity, y = rev)) + 
+  geom_point(alpha = .5) +
+  geom_line(aes(y = pred), color = "red") + 
+  facet_grid(~model)
+```
+
+![](tests_files/figure-gfm/unnamed-chunk-4-1.png)<!-- --> The three
+models are very similar.
+
+Re-sample the dataset by `crossv_mc` and let’s see the rmse of each
+model
+
+``` r
+cv_df =
+  crossv_mc(croissant_df, 100) %>% 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble))
+
+cv_df = 
+  cv_df %>% 
+  mutate(
+    linear_mod  = map(train, ~lm(rev ~ quantity, data = .x)),
+    pwl_mod     = map(train, ~lm(rev ~ quantity + qty_cp, data = .x)),
+    smooth_mod  = map(train, ~gam(rev ~ s(quantity), data = as_tibble(.x)))) %>% 
+  mutate(
+    rmse_linear = map2_dbl(linear_mod, test, ~rmse(model = .x, data = .y)),
+    rmse_pwl    = map2_dbl(pwl_mod, test, ~rmse(model = .x, data = .y)),
+    rmse_smooth = map2_dbl(smooth_mod, test, ~rmse(model = .x, data = .y)))
+```
+
+Then plot the rmse graph
+
+``` r
+cv_df %>% 
+  select(starts_with("rmse")) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") %>% 
+  mutate(model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+```
+
+![](tests_files/figure-gfm/unnamed-chunk-6-1.png)<!-- --> Based on the
+results, there is a slightly improvement using piecewise linear model as
+it has a lower tail of rmse on the top. Since there are no significant
+difference between the three model including the non-linear smooth
+model, we can conclude that the basic linear model is clear enough to be
+accounted for this relationship in the product of croissant.
+
+### Multiple Linear Regression (test version)
+
+We are interested in testing the relationship between the unit price of
+a product and its quantity being sold. Considering that the sales of
+bakery varies by month, so we included `month` in our model as a
+confounder to be controlled.
+
+Linear Regression check assumption Linear Regression for baguette
+
+``` r
+baguette_df = 
+  bakery_df %>% 
+  filter(str_detect(product_name, "BAGUETTE")) %>% 
+  mutate(
+    month = month(date)
+  )
+baguette_reg = lm(rev ~ unit_price + quantity + month, baguette_df)
+
+# Use backward elimination based on AIC to find a mlr model 
+baguette_model_2 = step(baguette_reg, direction = "backward")
+```
+
+    ## Start:  AIC=-331778.6
+    ## rev ~ unit_price + quantity + month
+    ## 
+    ##              Df Sum of Sq    RSS     AIC
+    ## <none>                      2334 -331779
+    ## - month       1         1   2335 -331742
+    ## - unit_price  1      3987   6321 -241456
+    ## - quantity    1    174518 176852   60583
+
+``` r
+summary(baguette_model_2) %>% broom::tidy() %>% knitr::kable(digits = 3)
+```
+
+| term        | estimate | std.error | statistic | p.value |
+|:------------|---------:|----------:|----------:|--------:|
+| (Intercept) |   -1.432 |     0.004 |  -374.606 |       0 |
+| unit_price  |    1.207 |     0.003 |   393.521 |       0 |
+| quantity    |    1.188 |     0.000 |  2603.542 |       0 |
+| month       |    0.001 |     0.000 |     6.200 |       0 |
+
+``` r
+anova(baguette_model_2, baguette_reg)
+```
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: rev ~ unit_price + quantity + month
+    ## Model 2: rev ~ unit_price + quantity + month
+    ##   Res.Df    RSS Df Sum of Sq F Pr(>F)
+    ## 1  90660 2334.1                      
+    ## 2  90660 2334.1  0         0
+
+``` r
+baguette_reg %>% 
+  broom::tidy()
+```
+
+    ## # A tibble: 4 × 5
+    ##   term        estimate std.error statistic  p.value
+    ##   <chr>          <dbl>     <dbl>     <dbl>    <dbl>
+    ## 1 (Intercept) -1.43     0.00382    -375.   0       
+    ## 2 unit_price   1.21     0.00307     394.   0       
+    ## 3 quantity     1.19     0.000456   2604.   0       
+    ## 4 month        0.00119  0.000193      6.20 5.69e-10
+
+Examine assumptions for the chosen Linear Regression model
+
+``` r
+par(mfrow = c(2, 2))
+plot(baguette_reg)
+```
+
+![](tests_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ### One-sample T-test
 
@@ -228,6 +351,17 @@ as the average price of baguette in Paris.
 
 Alternative hypothesis: The mean price of baguette in this bakery is
 different from the average price of baguette in Paris.
+
+``` r
+bakery_df %>% 
+  filter(product_name == "TRADITIONAL BAGUETTE") %>% 
+  group_by(date) %>% 
+  summarize(total_sale = sum(quantity)) %>% 
+  ggplot(aes(x = total_sale)) +
+  geom_histogram()
+```
+
+![](tests_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 baguette_onet = 
@@ -315,34 +449,29 @@ bakery_df %>%
     y = "Number of times appeared")
 ```
 
-![](tests_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](tests_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 Overall, what hours has the most number of products sold?
 
 ``` r
 bakery_df %>% 
+  mutate(year = year(date)) %>% 
+  filter(year == 2021) %>% 
   group_by(Hour) %>% 
   summarize(
-    n_sold = sum(quantity))
+    n_sold = sum(quantity) / 365) %>% 
+  ggplot(aes(x = Hour, y = n_sold)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = seq(7, 20), limit = c(7, 20)) +
+  scale_y_continuous(limit = c(0,120)) +
+  labs(
+    title = "Peak hours",
+    x = "Hour (24-hour format)",
+    y = "Number of products sold")
 ```
 
-    ## # A tibble: 14 × 2
-    ##     Hour n_sold
-    ##    <int>  <dbl>
-    ##  1     7  13432
-    ##  2     8  50412
-    ##  3     9  57444
-    ##  4    10  64496
-    ##  5    11  69196
-    ##  6    12  52254
-    ##  7    13   8750
-    ##  8    14    258
-    ##  9    15    140
-    ## 10    16  12393
-    ## 11    17  16114
-    ## 12    18  13607
-    ## 13    19   1478
-    ## 14    20      7
+![](tests_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ``` r
 smooth_mod = gam(quantity ~ s(Hour) + s(Month), data = bakery_df)
@@ -355,3 +484,31 @@ smooth_mod %>% broom::tidy()
     ##   <chr>    <dbl>  <dbl>     <dbl>   <dbl>
     ## 1 s(Hour)   6.89   7.78     347.        0
     ## 2 s(Month)  8.89   9.00      46.6       0
+
+``` r
+bakery_df %>%
+  mutate(
+    month = month(date),
+    year = year(date)) %>% 
+  filter(month == 2 & year == 2021) %>% 
+  group_by(product_name) %>% 
+  summarize(total_sale = sum(quantity)) %>% 
+  filter(total_sale < 1000) %>% 
+  ggplot(aes(x = total_sale)) +
+  geom_histogram(bins = 71)
+```
+
+![](tests_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+``` r
+skew = 
+bakery_df %>% 
+  group_by(date) %>% 
+  summarize(total_sale = sum(quantity))
+
+# Skewness test
+print(skewness(skew))
+```
+
+    ##        date  total_sale 
+    ## -0.01517941  1.20058066
