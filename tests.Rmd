@@ -10,6 +10,7 @@ knitr::opts_chunk$set(message = FALSE)
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(mgcv)
 ```
 
 Data input and cleaning 
@@ -194,6 +195,8 @@ bakery_df %>%
 ```
 
 ```{r}
+smooth_mod = gam(quantity ~ s(Hour), data = bakery_df)
 
+smooth_mod %>% broom::tidy()
 ```
 

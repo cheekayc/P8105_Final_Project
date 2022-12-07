@@ -48,6 +48,20 @@ library(plotly)
     ## 
     ##     layout
 
+``` r
+library(mgcv)
+```
+
+    ## Loading required package: nlme
+    ## 
+    ## Attaching package: 'nlme'
+    ## 
+    ## The following object is masked from 'package:dplyr':
+    ## 
+    ##     collapse
+    ## 
+    ## This is mgcv 1.8-41. For overview type 'help("mgcv-package")'.
+
 Data input and cleaning
 
 ``` r
@@ -275,3 +289,67 @@ the null hypothesis. At 5% level of significance, we have sufficient
 evidence to conclude that the mean price of traditional baguette in this
 bakery is significantly higher than the average price of baguette in
 Paris.
+
+### Generalized Additive Model
+
+Find the *rush hours* of a typical day:
+
+``` r
+bakery_df = 
+  bakery_df %>% 
+  mutate(
+    Hour = hour(time))
+
+bakery_df %>% 
+  group_by(Hour) %>% 
+  count() %>% 
+  ggplot(aes(x = Hour, y = n)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = seq(7, 20), limit = c(7, 20)) +
+  scale_y_continuous(limit = c(0,50000)) +
+  labs(
+    title = "Peak hours",
+    x = "Hour (24-hour format)",
+    y = "Number of times appeared")
+```
+
+![](tests_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+Overall, what hours has the most number of products sold?
+
+``` r
+bakery_df %>% 
+  group_by(Hour) %>% 
+  summarize(
+    n_sold = sum(quantity))
+```
+
+    ## # A tibble: 14 × 2
+    ##     Hour n_sold
+    ##    <int>  <dbl>
+    ##  1     7  13432
+    ##  2     8  50412
+    ##  3     9  57444
+    ##  4    10  64496
+    ##  5    11  69196
+    ##  6    12  52254
+    ##  7    13   8750
+    ##  8    14    258
+    ##  9    15    140
+    ## 10    16  12393
+    ## 11    17  16114
+    ## 12    18  13607
+    ## 13    19   1478
+    ## 14    20      7
+
+``` r
+smooth_mod = gam(quantity ~ s(Hour), data = bakery_df)
+
+smooth_mod %>% broom::tidy()
+```
+
+    ## # A tibble: 1 × 5
+    ##   term      edf ref.df statistic p.value
+    ##   <chr>   <dbl>  <dbl>     <dbl>   <dbl>
+    ## 1 s(Hour)  6.93   7.81      374.       0
