@@ -1,0 +1,10 @@
+---
+title: "Forecast Model"
+output: github_document
+---
+
+```{r setup, message = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+library(tidyverse)
+```
