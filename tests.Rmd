@@ -11,6 +11,7 @@ library(tidyverse)
 library(lubridate)
 library(plotly)
 library(mgcv)
+library(performance)
 ```
 
 Data input and cleaning 
@@ -44,7 +45,9 @@ anova_df =
   mutate(
     year = year(date),
     month = month(date),
-    rev = quantity * unit_price) 
+    rev = quantity * unit_price) %>% 
+  filter(year == 2021)
+  
 
 third_sales = 
   anova_df %>% 
@@ -56,7 +59,7 @@ third_sales =
   
 first_sales = 
   anova_df %>% 
-  filter((month == 1) |(month == 2)|(month == 3)) %>% 
+  filter((month == 12) |(month == 1)|(month == 2)) %>% 
   group_by(year, month) %>% 
   summarize(first_sales = n()) %>% 
   group_by(year, month) %>% 
@@ -81,6 +84,10 @@ the sales of bakery varies by month, so we included `month` in our model as a co
 
 Linear Regression for baguette 
 ```{r}
+check_model(
+  baguette_reg, 
+  check = c("linearity", "outliers", "qq", "normality"))
+
 baguette_df = 
   bakery_df %>% 
   filter(str_detect(product_name, "BAGUETTE")) %>% 
@@ -107,6 +114,7 @@ croissant_reg %>%
   broom::tidy()
 ```
 
+
 ### One-sample T-test
 
 ##### Regular Baguette (Two-sided)
@@ -119,6 +127,13 @@ Null hypothesis: The mean price of baguette in this bakery is the same as the av
 Alternative hypothesis: The mean price of baguette in this bakery is different from the average price of baguette in Paris.
 
 ```{r}
+bakery_df %>% 
+  filter(product_name == "TRADITIONAL BAGUETTE") %>% 
+  group_by(date) %>% 
+  summarize(total_sale = sum(quantity)) %>% 
+  ggplot(aes(x = total_sale)) +
+  geom_histogram()
+
 baguette_onet = 
   bakery_df %>% 
   filter(product_name == "BAGUETTE") %>%
@@ -190,9 +205,20 @@ bakery_df %>%
 Overall, what hours has the most number of products sold?
 ```{r}
 bakery_df %>% 
+  mutate(year = year(date)) %>% 
+  filter(year == 2021) %>% 
   group_by(Hour) %>% 
   summarize(
-    n_sold = sum(quantity))
+    n_sold = sum(quantity) / 365) %>% 
+  ggplot(aes(x = Hour, y = n_sold)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = seq(7, 20), limit = c(7, 20)) +
+  scale_y_continuous(limit = c(0,120)) +
+  labs(
+    title = "Peak hours",
+    x = "Hour (24-hour format)",
+    y = "Number of products sold")
 ```
 
 ```{r}
