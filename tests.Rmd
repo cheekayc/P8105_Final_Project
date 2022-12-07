@@ -162,5 +162,38 @@ evidence to conclude that the mean price of traditional baguette in this bakery 
 in Paris.
 
 
+### Generalized Additive Model 
 
+Find the *rush hours* of a typical day:
+```{r}
+bakery_df = 
+  bakery_df %>% 
+  mutate(
+    Hour = hour(time))
+
+bakery_df %>% 
+  group_by(Hour) %>% 
+  count() %>% 
+  ggplot(aes(x = Hour, y = n)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = seq(7, 20), limit = c(7, 20)) +
+  scale_y_continuous(limit = c(0,50000)) +
+  labs(
+    title = "Peak hours",
+    x = "Hour (24-hour format)",
+    y = "Number of times appeared")
+```
+
+Overall, what hours has the most number of products sold?
+```{r}
+bakery_df %>% 
+  group_by(Hour) %>% 
+  summarize(
+    n_sold = sum(quantity))
+```
+
+```{r}
+
+```
 
