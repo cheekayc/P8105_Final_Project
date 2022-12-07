@@ -11,7 +11,7 @@ library(tidyverse)
 library(lubridate)
 library(plotly)
 library(mgcv)
-library(performance)
+library(moments)
 ```
 
 Data input and cleaning 
@@ -226,4 +226,27 @@ smooth_mod = gam(quantity ~ s(Hour) + s(Month), data = bakery_df)
 
 smooth_mod %>% broom::tidy()
 ```
+
+
+```{r}
+bakery_df %>%
+  mutate(
+    month = month(date),
+    year = year(date)) %>% 
+  filter(month == 2 & year == 2021) %>% 
+  group_by(product_name) %>% 
+  summarize(total_sale = sum(quantity)) %>% 
+  filter(total_sale < 1000) %>% 
+  ggplot(aes(x = total_sale)) +
+  geom_histogram(bins = 71)
+
+skew = 
+bakery_df %>% 
+  group_by(date) %>% 
+  summarize(total_sale = sum(quantity))
+
+# Skewness test
+print(skewness(skew))
+```
+
 
