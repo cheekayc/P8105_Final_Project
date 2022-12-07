@@ -298,7 +298,8 @@ Find the *rush hours* of a typical day:
 bakery_df = 
   bakery_df %>% 
   mutate(
-    Hour = hour(time))
+    Hour = hour(time),
+    Month = month(date))
 
 bakery_df %>% 
   group_by(Hour) %>% 
@@ -344,12 +345,13 @@ bakery_df %>%
     ## 14    20      7
 
 ``` r
-smooth_mod = gam(quantity ~ s(Hour), data = bakery_df)
+smooth_mod = gam(quantity ~ s(Hour) + s(Month), data = bakery_df)
 
 smooth_mod %>% broom::tidy()
 ```
 
-    ## # A tibble: 1 × 5
-    ##   term      edf ref.df statistic p.value
-    ##   <chr>   <dbl>  <dbl>     <dbl>   <dbl>
-    ## 1 s(Hour)  6.93   7.81      374.       0
+    ## # A tibble: 2 × 5
+    ##   term       edf ref.df statistic p.value
+    ##   <chr>    <dbl>  <dbl>     <dbl>   <dbl>
+    ## 1 s(Hour)   6.89   7.78     347.        0
+    ## 2 s(Month)  8.89   9.00      46.6       0
