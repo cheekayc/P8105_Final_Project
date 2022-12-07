@@ -7,4 +7,30 @@ output: github_document
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 library(tidyverse)
+library(forecast)
+library(astsa)
+library(MLmetrics)
+library(lubridate)
 ```
+
+Time series forecasting involves using historical, time-stamped data to make predictions of what might happen in the future.
+
+Load and clean dataset:
+```{r}
+bakery_df = 
+  read_csv("./Data/Bakery_sales.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    unit_price = str_replace(unit_price, "€", ""),
+    unit_price = str_replace(unit_price, ",", "."),
+    unit_price = as.numeric(unit_price),
+    year = year(date),
+    month = month(date),
+    hour = hour(time),
+    product_name = article) %>% 
+  filter(product_name != ".") %>% 
+  select(-article)
+```
+
+
+
