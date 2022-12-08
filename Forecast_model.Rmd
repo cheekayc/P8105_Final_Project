@@ -84,6 +84,7 @@ test =
 Naive forecasting is a simple and cost-effective method in which the forecasts produced are equal to the last observed value. The seasonal naive approach is used 
 when the time series exhibits seasonality, in which case, the forecasts are equivalent to the value from the last season. Naive methods are typically used as a 
 benchmark against which more sophisticated forecasting techniques can be compared. 
+
 For model evaluation, we will be relying on the Mean Absolute Percentage Error (MAPE) to measure the accuracy of our predictions.
 
 ```{r}
@@ -212,4 +213,7 @@ train %>%
   theme_minimal() +
   theme(legend.position = "bottom")
 ```
+
+future prediction...
+
 

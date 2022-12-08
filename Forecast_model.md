@@ -91,9 +91,10 @@ forecasts produced are equal to the last observed value. The seasonal
 naive approach is used when the time series exhibits seasonality, in
 which case, the forecasts are equivalent to the value from the last
 season. Naive methods are typically used as a benchmark against which
-more sophisticated forecasting techniques can be compared. For model
-evaluation, we will be relying on the Mean Absolute Percentage Error
-(MAPE) to measure the accuracy of our predictions.
+more sophisticated forecasting techniques can be compared.
+
+For model evaluation, we will be relying on the Mean Absolute Percentage
+Error (MAPE) to measure the accuracy of our predictions.
 
 ``` r
 seasonal_naive_model = snaive(train$total_sale, h = length(test$total_sale))
@@ -225,7 +226,7 @@ print("The error rate of this model is")
 MAPE(nn_forecast_df$mean, test$total_sale) * 100
 ```
 
-    ## [1] 34.11401
+    ## [1] 40.98017
 
 ``` r
 test_nn = 
@@ -249,3 +250,5 @@ train %>%
 ```
 
 <img src="Forecast_model_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" />
+
+future prediction…
