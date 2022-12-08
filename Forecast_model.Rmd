@@ -10,6 +10,7 @@ library(tidyverse)
 library(forecast)
 library(astsa)
 library(MLmetrics)
+library(zoo)
 library(lubridate)
 ```
 
@@ -32,7 +33,7 @@ bakery_df =
   select(-article)
 ```
 
-In 2021, how many products were sold each month?
+In 2021, how many products were sold each day?
 ```{r}
 sale_2021 = 
   bakery_df %>% 
@@ -46,17 +47,127 @@ sale_2021 =
 In 2021, the bakery opened for business for 339 days. The `sale_2021` dataset shows the number of products sold each day in 2021. 
 To begin our forecasting task, we need to convert the dataframe into a *time series* or *ts* object. 
 
-```{r}
-ts_df = 
-  ts(sale_2021$total_sale, start = c(2021), frequency = 339)
-
-print(ts_df)
-```
-
 Plot data on a line graph
 ```{r}
-plot.ts(ts_df, col = "red", main = "Monthly Sale (2021)", xlab = "Month", ylab = "Number of prroducts sold")
+sale_2021 %>% 
+  ggplot(aes(x = date, y = total_sale)) +
+  geom_line()
 ```
 
 
+## Seasonal Naive Model = Baseline Forecast
+
+Naive forecasting is a simple and cost-effective method in which the forecasts produced are equal to the last observed value. The seasonal naive approach is used 
+when the time series exhibits seasonality, in which case, the forecasts are equivalent to the value from the last season. Naive methods are typically used as a 
+benchmark against which more sophisticated forecasting techniques can be compared. 
+For model evaluation, we will be relying on the Mean Absolute Percentage Error (MAPE) to measure the accuracy of our predictions.
+
+```{r}
+sales_all = 
+  bakery_df %>% 
+  group_by(date) %>% 
+  summarize(
+    total_sale = sum(quantity))
+```
+
+```{r}
+train = 
+  sales_all %>% 
+  filter(year(date) == 2021)
+
+test = 
+  sales_all %>% 
+  filter(year(date) == 2022 & month(date) == 1)
+```
+
+```{r}
+seasonal_naive_model = snaive(train$total_sale, h = length(test$total_sale))
+
+MAPE(seasonal_naive_model$mean, test$total_sale) * 100
+```
+
+```{r}
+test_seasonal = 
+  test %>% 
+  mutate(
+    pred_sale = seasonal_naive_model$mean)
+```
+
+```{r}
+train %>% 
+  ggplot(aes(x = date, y = total_sale)) +
+  geom_line(aes(color = "Actual sale (2021)")) +
+  geom_line(data = test_seasonal, aes(x = date, y = total_sale, color = "Actual sale (2022)")) + 
+  geom_line(data = test_seasonal, aes(x = date, y = pred_sale, color = "Predicted sale"), size = 1.5) +
+  labs(
+    x = "Date",
+    y = "Number of products sold",
+    title = "Seasonal Naive Forecast for January, 2022")
+```
+
+This is the most shit forecast model...
+
+
+## Double-Seasonal Holt-Winters (DSHW)
+
+```{r}
+double_seasonal_model = dshw(train$total_sale, period1 = 7, period2 = 14, h = length(test$total_sale))
+
+print("The error rate of this model is")
+
+MAPE(double_seasonal_model$mean, test$total_sale) * 100
+```
+
+```{r}
+test_double_seasonal = 
+  test %>% 
+  mutate(
+    pred_sale = double_seasonal_model$mean)
+```
+
+```{r}
+train %>% 
+  ggplot(aes(x = date, y = total_sale)) +
+  geom_line(aes(color = "Actual sale (2021)")) +
+  geom_line(data = test_double_seasonal, aes(x = date, y = total_sale, color = "Actual sale (2022)")) + 
+  geom_line(data = test_double_seasonal, aes(x = date, y = pred_sale, color = "Predicted sale"), size = 0.8) +
+  labs(
+    x = "Date",
+    y = "Number of products sold",
+    title = "Double-Seasonal Holt-Winters Forecast for January, 2022")
+```
+
+This model is better than the basic one, but still shit...
+
+
+## TBATS
+
+```{r}
+TBATS_model = tbats(train$total_sale)
+
+tbats_df = forecast(TBATS_model, h = length(test$total_sale))
+
+print("The error rate of this model is")
+
+MAPE(tbats_df$mean, test$total_sale) * 100
+```
+
+```{r}
+test_tbats = 
+  test %>% 
+  mutate(
+    pred_sale = tbats_df$mean)
+```
+
+```{r}
+train %>% 
+  ggplot(aes(x = date, y = total_sale)) +
+  geom_line(aes(color = "Actual sale (2021)")) +
+  geom_line(data = test_tbats, aes(x = date, y = total_sale, color = "Actual sale (2022)")) + 
+  geom_line(data = test_tbats, aes(x = date, y = pred_sale, color = "Predicted sale"), size = 0.8) +
+  labs(
+    x = "Date",
+    y = "Number of products sold",
+    title = "TBATS Forecast for January, 2022")
+```
 
