@@ -120,8 +120,7 @@ anova_df =
   mutate(
     year = year(date),
     month = month(date)
-    ) %>% 
-  filter(year == 2021)
+    ) 
   
 
 third_sales = 
@@ -134,7 +133,7 @@ third_sales =
   
 first_sales = 
   anova_df %>% 
-  filter((month == 12) |(month == 1)|(month == 2)) %>% 
+  filter((month == 1) |(month == 2)|(month == 3)) %>% 
   group_by(year, month) %>% 
   summarize(first_sales = n()) %>% 
   group_by(year, month) %>% 
@@ -146,12 +145,15 @@ anova_test_df =
 anova_test_df
 ```
 
-    ## # A tibble: 3 × 7
+    ## # A tibble: 6 × 7
     ##   year.x month.x third_sales    ID year.y month.y first_sales
     ##    <dbl>   <dbl>       <int> <int>  <dbl>   <dbl>       <int>
     ## 1   2021       6       10856     1   2021       1        6562
     ## 2   2021       7       17592     2   2021       2        7817
-    ## 3   2021       8       20344     3   2021      12        7891
+    ## 3   2021       8       20344     3   2021       3        9233
+    ## 4   2022       6       10678     4   2022       1        6273
+    ## 5   2022       7       18242     5   2022       2        7795
+    ## 6   2022       8       20135     6   2022       3        8251
 
 ``` r
 one.way <- aov(first_sales ~ third_sales, data = anova_test_df)
@@ -159,9 +161,11 @@ one.way <- aov(first_sales ~ third_sales, data = anova_test_df)
 summary(one.way)
 ```
 
-    ##             Df  Sum Sq Mean Sq F value Pr(>F)
-    ## third_sales  1 1054492 1054492   17.26   0.15
-    ## Residuals    1   61088   61088
+    ##             Df  Sum Sq Mean Sq F value  Pr(>F)   
+    ## third_sales  1 5350152 5350152   33.15 0.00451 **
+    ## Residuals    4  645565  161391                   
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 The ANOVA test p-value is 0.00451 which is less than alpha level of
 0.05, so we reject the null hypothesis and conclude that the mean sales
@@ -223,6 +227,7 @@ Re-sample the dataset by `crossv_mc` and let’s see the rmse of each
 model
 
 ``` r
+set.seed(2022)
 cv_df =
   crossv_mc(croissant_df, 100) %>% 
   mutate(

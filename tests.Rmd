@@ -49,8 +49,7 @@ anova_df =
   mutate(
     year = year(date),
     month = month(date)
-    ) %>% 
-  filter(year == 2021)
+    ) 
   
 
 third_sales = 
@@ -63,7 +62,7 @@ third_sales =
   
 first_sales = 
   anova_df %>% 
-  filter((month == 12) |(month == 1)|(month == 2)) %>% 
+  filter((month == 1) |(month == 2)|(month == 3)) %>% 
   group_by(year, month) %>% 
   summarize(first_sales = n()) %>% 
   group_by(year, month) %>% 
@@ -118,6 +117,7 @@ The three models are very similar.
 
 Re-sample the dataset by `crossv_mc` and let's see the rmse of each model
 ```{r}
+set.seed(2022)
 cv_df =
   crossv_mc(croissant_df, 100) %>% 
   mutate(
