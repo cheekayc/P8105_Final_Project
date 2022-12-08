@@ -58,8 +58,8 @@ sale_2021 %>%
   geom_line()
 ```
 
+## Data Pre-processing
 
-**Data pre-processing:**
 ```{r}
 sales_all = 
   bakery_df %>% 
@@ -214,6 +214,8 @@ train %>%
   theme(legend.position = "bottom")
 ```
 
-future prediction...
+## Sales Forecast for Oct - Dec 2022
+
+
 
 
