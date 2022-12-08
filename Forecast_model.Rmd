@@ -162,34 +162,50 @@ the amount of products sold is the same for each day. Therefore, we think that t
 
 ## Double-Seasonal Holt-Winters (DSHW)
 
-```{r}
+The **Double-seasonal Holt-Winters** method uses additive trend and multiplicative seasonality, where there are two seasonal components which are multiplied together. 
+The length of the two seasonalities must be multiples of one another (2 and 4, 4 and 12, etc.). In our case, we will specify the length of the first seasonality as 7  
+and the second as 14.
+
+```{r DSHWM}
+# Fit the model
 double_seasonal_model = dshw(train$total_sale, period1 = 7, period2 = 14, h = length(test$total_sale))
 
-print("The error rate of this model is")
-
-MAPE(double_seasonal_model$mean, test$total_sale) * 100
+# Compute the model's error
+DSHW_error = MAPE(double_seasonal_model$mean, test$total_sale) * 100
 ```
 
-```{r}
+**The accuracy of the *Double-seasonal Holt-Winters* model is `r sum(DSHW_error = 100-DSHW_error)`.**
+
+The *DSHW* model will output a list of mean values, and they are the predicted values of daily sales from September 1, 2022 to September 30, 2022.
+We need to extract the list of mean values from the model and put them into the `test` dataframe so that we can produce a time-series forecast plot.
+
+```{r DSHW predict}
 test_double_seasonal = 
   test %>% 
   mutate(
     pred_sale = double_seasonal_model$mean)
 ```
 
-```{r}
+Finally, we can plot a time-series forecasting graph to see the results of our *DSHW* model.
+
+```{r DSHW prediction plot}
 train %>% 
   ggplot(aes(x = date, y = total_sale)) +
-  geom_line(aes(color = "Actual sale (2021)")) +
-  geom_line(data = test_double_seasonal, aes(x = date, y = total_sale, color = "Actual sale (2022)")) + 
-  geom_line(data = test_double_seasonal, aes(x = date, y = pred_sale, color = "Predicted sale")) +
+  geom_line(aes(color = "Actual sale (Prior to 2022-09-01)")) +
+  geom_line(data = test_double_seasonal, aes(x = date, y = total_sale, color = "Actual sale (2022-09-01 to 2022-09-30)")) + 
+  geom_line(data = test_double_seasonal, aes(x = date, y = pred_sale, color = "Predicted sale (2022-09-01 to 2022-09-30")) +
+  scale_x_date(date_labels = "%b %Y", date_breaks  = "2 month") +
   labs(
     x = "Date",
     y = "Number of products sold",
-    title = "Double-Seasonal Holt-Winters Forecast for January, 2022")
+    title = "Double-Seasonal Holt-Winters Forecast of Daily Sales for September (2022)") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(plot.title = element_text(hjust = 0.4))
 ```
 
-This model should be better than the basic one because it is dynamic, but still shit because error is bigger than the basic one...
+Comments: Although the *DSHW* model has a worse accuracy than the basic model (*Seasonal Naive*), but visually it is better than the basic model because it shows dynamic trend.
+This would make more sense than the predictions given by the *Seasonal Naive* model as we can see that it is no longer predicting that the daily sales are the same for each day.
 
 
 ## TBATS
