@@ -7,7 +7,8 @@ knitr::opts_chunk$set(
   warning = FALSE,
   fig.width = 14,
   fig.height = 6,
-  out.width = "90%")
+  out.width = "90%",
+  set.seed(8))
 
 library(tidyverse)
 library(forecast)
@@ -19,9 +20,9 @@ library(lubridate)
 Time series forecasting involves using historical, time-stamped data to
 make predictions of what might happen in the future.
 
-Load and clean dataset:
-
 ``` r
+# Load and clean dataset:
+
 bakery_df = 
   read_csv("./Data/Bakery_sales.csv") %>% 
   janitor::clean_names() %>% 
@@ -47,24 +48,60 @@ sale_2021 =
   group_by(date) %>% 
   summarize(
     total_sale = sum(quantity))
+
+sale_2021
 ```
 
-In 2021, the bakery opened for business for 339 days. The `sale_2021`
-dataset shows the number of products sold each day in 2021. To begin our
-forecasting task, we need to convert the dataframe into a *time series*
-or *ts* object.
+    ## # A tibble: 339 × 2
+    ##    date       total_sale
+    ##    <date>          <dbl>
+    ##  1 2021-01-02        581
+    ##  2 2021-01-03        564
+    ##  3 2021-01-04        315
+    ##  4 2021-01-05        309
+    ##  5 2021-01-07        310
+    ##  6 2021-01-08        316
+    ##  7 2021-01-09        394
+    ##  8 2021-01-10        473
+    ##  9 2021-01-11        291
+    ## 10 2021-01-12        258
+    ## # … with 329 more rows
 
-Plot data on a line graph
+The `sale_2021` dataset shows the number of products sold each day in
+2021. In 2021, the bakery opened for business for 339 days.
+
+The line plot below shows the total number of products sold each day in
+2021.
 
 ``` r
 sale_2021 %>% 
   ggplot(aes(x = date, y = total_sale)) +
-  geom_line()
+  geom_line(aes(color = "Orange")) +
+  scale_x_date(date_labels = "%b %Y", date_breaks  = "1 month") +
+  labs(
+    x = "Date",
+    y = "Number of products sold",
+    title = "Bakery's Daily Sales (2021)") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(plot.title = element_text(hjust = 0.4))
 ```
 
-<img src="Forecast_model_files/figure-gfm/unnamed-chunk-3-1.png" width="90%" />
+<img src="Forecast_model_files/figure-gfm/2021 daily sales line plot-1.png" width="90%" />
 
-**Data pre-processing:**
+We will see this trend again as we verify the accuracy of different
+forecast models in the next few sections.
+
+## Data Pre-processing
+
+We need to create a simple and clean dataframe derived from the original
+dataset `bakery_df` that can be used by the forecast models. This new
+dataframe only needs two columns:  
+\* `date` : date order in which the bakery opened for business  
+\* `total_sale` : sum of products sold
+
+The `sales_all` dataframe consists of 600 rows, in which the dates begin
+with *January 2, 2021* and end with *September 30, 2022*.
 
 ``` r
 sales_all = 
@@ -73,6 +110,13 @@ sales_all =
   summarize(
     total_sale = sum(quantity))
 ```
+
+Then, we need to create a `train` and a `test` data frames so that we
+can test the accuracy of our forecast models. We will be using all data
+prior to *September 1, 2022* as our `train` dataset to predict the
+amount of products sold daily for September, 2022. The remaining data
+from *September 1, 2022* to *September 30, 2022* will be our `test`
+dataset.
 
 ``` r
 train = 
@@ -84,7 +128,19 @@ test =
   filter(year(date) == 2022 & month(date) == 9)
 ```
 
-## Seasonal Naive Model = Baseline Forecast
+### Mean Absolute Percentage Error (MAPE)
+
+For model evaluation, we will be relying on the ***Mean Absolute
+Percentage Error (MAPE)*** to measure the accuracy of our predictions.
+
+The accuracy of the model can be calculated as $100 - MAPE$. For
+example, an *MAPE* value of 70 indicates the model has an accuracy of
+30%.
+
+## Seasonal Naive Model
+
+First, we begin with the most basic forecast model - the **Seasonal
+Naive Model**.
 
 Naive forecasting is a simple and cost-effective method in which the
 forecasts produced are equal to the last observed value. The seasonal
@@ -93,16 +149,15 @@ which case, the forecasts are equivalent to the value from the last
 season. Naive methods are typically used as a benchmark against which
 more sophisticated forecasting techniques can be compared.
 
-For model evaluation, we will be relying on the Mean Absolute Percentage
-Error (MAPE) to measure the accuracy of our predictions.
-
 ``` r
+# Fit the model
 seasonal_naive_model = snaive(train$total_sale, h = length(test$total_sale))
 
-MAPE(seasonal_naive_model$mean, test$total_sale) * 100
+# Compute error of the model
+SNM_error = MAPE(seasonal_naive_model$mean, test$total_sale) * 100
 ```
 
-    ## [1] 19.06633
+The accuracy of the *Seasonal Naive* model is 80.933674.
 
 ``` r
 test_seasonal = 
@@ -123,7 +178,7 @@ train %>%
     title = "Seasonal Naive Forecast for January, 2022")
 ```
 
-<img src="Forecast_model_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
+<img src="Forecast_model_files/figure-gfm/unnamed-chunk-2-1.png" width="90%" />
 
 This is the most shit forecast model…
 
@@ -162,7 +217,7 @@ train %>%
     title = "Double-Seasonal Holt-Winters Forecast for January, 2022")
 ```
 
-<img src="Forecast_model_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
+<img src="Forecast_model_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
 
 This model should be better than the basic one because it is dynamic,
 but still shit because error is bigger than the basic one…
@@ -204,7 +259,7 @@ train %>%
     title = "TBATS Forecast for January, 2022")
 ```
 
-<img src="Forecast_model_files/figure-gfm/unnamed-chunk-14-1.png" width="90%" />
+<img src="Forecast_model_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
 
 Our model’s accuracy is getting better, but it tends to over forecast.
 However, over forecasting can help the bakery to meet daily demand of
@@ -226,7 +281,7 @@ print("The error rate of this model is")
 MAPE(nn_forecast_df$mean, test$total_sale) * 100
 ```
 
-    ## [1] 40.98017
+    ## [1] 31.24998
 
 ``` r
 test_nn = 
@@ -237,18 +292,72 @@ test_nn =
 
 ``` r
 train %>% 
+  filter(date > "2022-01-01") %>% 
   ggplot(aes(x = date, y = total_sale)) +
   geom_line(aes(color = "Actual sale (2021)")) +
   geom_line(data = test_nn, aes(x = date, y = total_sale, color = "Actual sale (2022)"), alpha = 0.8) + 
   geom_line(data = test_nn, aes(x = date, y = pred_sale, color = "Predicted sale"), size = 0.6, alpha = 0.8) +
+  scale_x_date(date_labels="%y-%m", date_breaks  = "1 month") +
   labs(
     x = "Date",
     y = "Number of products sold",
     title = "Neural Network Forecast for September, 2022") +
   theme_minimal() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  theme(plot.title = element_text(hjust = 0.4))
 ```
 
-<img src="Forecast_model_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" />
+<img src="Forecast_model_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
 
-future prediction…
+## Sales Forecast for Oct - Dec 2022
+
+As we have identified that the *Neural Network* model gives us the
+highest accuracy (), we will use this model to predict the future sales
+in October to December in 2022.
+
+``` r
+train_future = 
+  sales_all
+```
+
+``` r
+nn_future = nnetar(train_future$total_sale)
+
+nn_future_df = forecast(nn_future, h = 92)
+
+set.seed(2022)
+
+dates = seq(as.Date('2022-10-01'), as.Date('2022-12-31'), by = 'days')
+
+date_df =
+  tibble(
+    A = letters[sample(1:26, 92, TRUE)])
+
+date_df = 
+  tibble(
+    date = rep(dates, length.out = nrow(date_df)))
+
+date_df =
+  date_df %>% 
+  mutate(
+    pred_sale = nn_future_df$mean)
+```
+
+The plot below shows the predicted daily sales of the bakery from
+October to December in 2022.
+
+``` r
+date_df %>% 
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = pred_sale, color = "Red")) +
+  scale_x_date(date_labels="%m-%d", date_breaks  = "10 day") +
+  labs(
+    x = "Date (Month-Day)",
+    y = "Number of products sold",
+    title = "Predicted Daily Sales from October to December (2022)") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(plot.title = element_text(hjust = 0.4))
+```
+
+<img src="Forecast_model_files/figure-gfm/predicted sales-1.png" width="90%" />
